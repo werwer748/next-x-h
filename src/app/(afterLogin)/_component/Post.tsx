@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import 'dayjs/locale/ko';
 import ActionButtons from "@/app/(afterLogin)/_component/ActionButtons";
+import PostArticle from "@/app/(afterLogin)/_component/PostArticle";
 
 //* 플러그인 연결!
 dayjs.locale('ko');
@@ -12,6 +13,7 @@ dayjs.extend(relativeTime);
 
 export default function Post() {
   const target = {
+    postId: 1,
     User: {
       id: 'elonmusk',
       nickname: 'Elon Musk',
@@ -23,8 +25,12 @@ export default function Post() {
   }
   
   return (
-    //* 시멘틱 태그를잘 활용하면 도움이 된다
-    <article className={style.post}>
+    /**
+      * 해당 범위가 클릭되면 status페이지로 이동해야함
+      * 해당 기능 구현을 위해서 이 컴포넌트 자체를 클라이언트 컴포넌트로 바꿔야할까?
+      * => 내부에 새로운 컴포넌트를 하나 만들면 간단하게 처리 가능!
+    */
+    <PostArticle post={target}>
       <div className={style.postWrapper}>
         <div className={style.postUserSection}>
           <Link href={`/${target.User.id}`} className={style.postUserImage}>
@@ -51,6 +57,6 @@ export default function Post() {
           <ActionButtons/>
         </div>
       </div>
-    </article>
+    </PostArticle>
   )
 }

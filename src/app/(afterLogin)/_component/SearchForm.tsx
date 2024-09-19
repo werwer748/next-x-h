@@ -1,6 +1,11 @@
 import style from "./right-search-zone.module.css";
 
-export default function SearchForm() {
+type TProps = {
+  //? ?를 붙여서 옵셔널 타입임을 명시
+  q?: string;
+}
+
+export default function SearchForm({ q }: TProps) {
   return (
     <form className={style.search}>
       <svg width={20} viewBox="0 0 24 24" aria-hidden="true">
