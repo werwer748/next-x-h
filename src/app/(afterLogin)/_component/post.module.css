@@ -180,3 +180,8 @@
 .heartButton.liked .count, .heartButton:hover .count {
     color: rgb(228, 34, 126);
 }
+
+.white svg {
+    fill: white;
+    color: white;
+}
