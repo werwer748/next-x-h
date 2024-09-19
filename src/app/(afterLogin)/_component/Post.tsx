@@ -10,6 +10,7 @@ import {faker, fakerKO} from '@faker-js/faker';
 
 import ActionButtons from "@/app/(afterLogin)/_component/ActionButtons";
 import PostArticle from "@/app/(afterLogin)/_component/PostArticle";
+import PostImages from "@/app/(afterLogin)/_component/PostImages";
 
 //* 플러그인 연결!
 dayjs.locale('ko');
@@ -33,12 +34,21 @@ export default function Post({ noImage }: TProps) {
     Images: [] as any[],
   }
   
-  // 정확히 반반확률!
+  // 테스트하고자하는 이미지 갯수만큼 늘려서 사용
   if (Math.random() > 0.5 && !noImage) {
     target.Images.push(
-    { imageId: 1,
-      link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
-    }
+      { imageId: 1,
+        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
+      },
+      { imageId: 2,
+        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
+      },
+      { imageId: 3,
+        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
+      },
+      { imageId: 4,
+        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
+      },
     )
   }
   
@@ -69,15 +79,8 @@ export default function Post({ noImage }: TProps) {
             <span className={style.postDate}>{dayjs(target.createdAt).fromNow(true)}</span>
           </div>
           <div>{target.content}</div>
-          <div className={style.postImageSection}>
-            {target.Images && target.Images.length > 0 && (
-              <Link
-                href={`/${target.User.id}/status/${target.postId}/photo/${target.Images[0].imageId}`}
-                className={style.postImageSection}
-              >
-                <img src={target.Images[0]?.link} alt={target.Images[0].link}/>
-              </Link>
-            )}
+          <div>
+            <PostImages post={target}/>
           </div>
           <ActionButtons/>
         </div>

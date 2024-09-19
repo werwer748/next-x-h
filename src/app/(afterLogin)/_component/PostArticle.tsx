@@ -10,7 +10,7 @@ type TProps = {
     postId: number;
     content: string;
     createdAt: Date;
-    Images: string[];
+    Images: any[];
     User: {
       id: string;
       nickname: string;
