@@ -1,56 +1,47 @@
-//* 정식 기능이 된 서버 액션을 사용하기 위해 서버 컴포넌트로 변경
+//* 클라이언트 컴포넌트에서 Server Actions 사용을 위해 클라이언트 컴포넌트 선언
+"use client";
+
 import style from "@/app/(beforeLogin)/_component/signup.module.css";
 import BackButton from "@/app/(beforeLogin)/_component/BackButton";
-import {redirect} from "next/navigation";
+//* 서버액션 함수로 분리한 코드를 임포트해와서 사용!
+import onSubmit from "../_lib/signup";
+import { useFormState, useFormStatus} from "react-dom";
+
+function showMessage(message: string | null | undefined) {
+  if (message === 'no_id') {
+    return '아이디를 입력하세요.';
+  }
+  if (message === 'no_name') {
+    return '닉네임을 입력하세요.';
+  }
+  if (message === 'no_password') {
+    return '비밀번호를 입력하세요.';
+  }
+  if (message === 'no_image') {
+    return '이미지를 업로드하세요.';
+  }
+  if (message === 'user_exists') {
+    return '이미 사용 중인 아이디입니다.';
+  }
+  return '';
+}
 
 export default function SignupModal() {
-
-  const submit = async (formData: FormData) => {
-    /**
-     * * use server
-     * ? 서버 액션으로 사용할 수 있게 해준다.
-     * ? 브라우저에 노출되지 않는 코드기 때문에 안전하게 키값 사용이 가능함
-     */
-    "use server";
-    
-    //* formData validation
-    if (!formData.get('id')) {
-      return {message: 'no_id' }
-    }
-    if (!formData.get('name')) {
-      return {message: 'no_name' };
-    }
-    if (!formData.get('password')) {
-      return {message: 'no_password' };
-    }
-    if (!formData.get('image')) {
-      return {message: 'no_image' };
-    }
-    
-    // next/navigation의 redirect는 try/catch에서 쓸 수 없기 때문에 이렇게 처리
-    let goRedirect = false;
-    
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users`, {
-        method: "POST",
-        body: formData,
-        credentials: 'include' // 쿠키 전달을 위해 추가
-      });
-      console.log(response.status);
-      if (response.status === 403) {
-        return { message: 'user_exists' }
-      }
-      console.log(await response.json());
-      goRedirect = true;
-    } catch (error) {
-      console.error(error);
-    }
-    
-    if (goRedirect) {
-      redirect('/home'); // try/catch문에서 절대로 사용해서는 안됨
-    }
-  }
+  /**
+   * 두 훅 모두 리액트에서 실험중인 기능으로 폼을 다루는데 사용할 수 있다.
+   * Next에서 지원하고 있는 함수기 떄문에 사용이 가능하다.
+   * useFormState
+   * => 폼에서 state를 쓸 수 있다.
+   * 작성한 서버 액션함수를 첫번째 인자로 넘기면 훅에서 관리하는 함수가 됨
+   * 두번째 인자는 초기값
+   *
+   * useFormStatus
+   * => 클아이언트단에서 폼처리가 끝난후 처리중인 정보들에 대한(통신)
+   * 정보를 가져올 수 있다.
+   */
   
+  const [state, formAction] = useFormState(onSubmit, { message: null });
+  const {pending} = useFormStatus();
   return (
     <>
       <div className={style.modalBackground}>
@@ -59,8 +50,8 @@ export default function SignupModal() {
             <BackButton/>
             <div>계정을 생성하세요.</div>
           </div>
-          {/* action의 submit이 서버액션 */}
-          <form action={submit}>
+          {/* useFormState의 formAction 을 사용 */}
+          <form action={formAction}>
             <div className={style.modalBody}>
               <div className={style.inputDiv}>
                 <label className={style.inputLabel} htmlFor="id">아이디</label>
@@ -70,7 +61,7 @@ export default function SignupModal() {
                   name={"id"} // form을 통쨰로 받아서써야하기 때문에 name 추가
                   type="text"
                   placeholder=""
-                  required // validation을 input에서 직접 처리해야 함.
+                  required
                 />
               </div>
               <div className={style.inputDiv}>
@@ -108,7 +99,8 @@ export default function SignupModal() {
               </div>
             </div>
             <div className={style.modalFooter}>
-              <button type={"submit"} className={style.actionButton}>가입하기</button>
+              <button type={"submit"} className={style.actionButton} disabled={pending}>가입하기</button>
+              <div className={style.error}>{showMessage(state?.message)}</div>
             </div>
           </form>
         </div>
