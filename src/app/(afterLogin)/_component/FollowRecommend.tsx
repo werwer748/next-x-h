@@ -1,14 +1,14 @@
 "use client";
 import style from "./follow-recommend.module.css";
+import {useQuery} from "@tanstack/react-query";
+import {getFollowRecommends} from "@/app/(afterLogin)/_lib/getFollowRecommends";
+import {IUser} from "@/model/User";
 
-export default function FollowRecommend() {
-  
-  const user = {
-    id: 'elonmusk',
-    nickname: 'Elon Musk',
-    image: '/yRsRRjGO.jpg'
-  };
-  
+type TProps = {
+  user: IUser;
+}
+
+export default function FollowRecommend({ user }: TProps) {
   const onFollow = () => {
   
   };

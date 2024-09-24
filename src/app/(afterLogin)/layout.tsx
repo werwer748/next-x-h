@@ -10,6 +10,7 @@ import FollowRecommend from "@/app/(afterLogin)/_component/FollowRecommend";
 import RightSearchZone from "@/app/(afterLogin)/_component/RightSearchZone";
 import {auth} from "@/auth";
 import RQProvider from "@/app/(afterLogin)/_component/RQProvider";
+import FollowRecommendSection from "@/app/(afterLogin)/_component/FollowRecommendSection";
 
 type TProps = {
   children: ReactNode;
@@ -60,9 +61,7 @@ export default async function AfterLoginLayout({children, modal}: TProps) {
               <TrendSection/>
               <div className={style.followRecommend}>
                 <h3>팔로우 추천</h3>
-                <FollowRecommend/>
-                <FollowRecommend/>
-                <FollowRecommend/>
+                <FollowRecommendSection />
               </div>
             </section>
           </div>
