@@ -2,27 +2,9 @@ import style from "./home.module.css";
 import Tab from "@/app/(afterLogin)/home/_component/Tab";
 import TabProvider from "@/app/(afterLogin)/home/_component/TabProvider";
 import PostForm from "@/app/(afterLogin)/home/_component/PostForm";
-import Post from "@/app/(afterLogin)/_component/Post";
 import {dehydrate, HydrationBoundary, QueryClient} from "@tanstack/react-query";
-
-//* 데이터 불러오기
-async function getPostRecommends() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/postRecommends`, {
-    //? 데이터 캐싱과 관련된 설정
-    next: {
-      //? 해당 태그를 통해 캐시를 초기화할 수 있다. - revalidateTag를 사용
-      //? revalidatePath라는걸 사용하면 이 페이지에 관련된 데이터를 새로고침할 수 도 있다.
-      tags: ['posts', 'recommends'],
-    },
-    cache: 'no-store'
-  });
-  
-  if (!res.ok) {
-    throw new Error("Failed to fetch data");
-  }
-  
-  return res.json()
-}
+import {getPostRecommends} from "@/app/(afterLogin)/home/_lib/getPostRecommends";
+import PostRecommends from "@/app/(afterLogin)/home/_component/PostRecommends";
 
 export default async function Home() {
   //* react-query는 서버컴포넌트에서도 어느정도 사용이 가능하다.
@@ -61,13 +43,14 @@ export default async function Home() {
   
   return (
     <main className={style.main}>
-      {/* Provider 태그 내부에서만 Context API를 쓸 수 있음*/}
+      {/* HydrationBoundary 를 통해 디하이드레이트된 데이터를 물려받아서 클라이언트 리액트 쿼리로 만든다. */}
       <HydrationBoundary state={dehydratedState}>
+        {/* Provider 태그 내부에서만 Context API를 쓸 수 있음*/}
         <TabProvider>
           <Tab/>
           <PostForm />
-          <Post />
-          <Post />
+          {/* 클라이언트의 리액트쿼리가 받기위해서 컴포넌트 분리 */}
+          <PostRecommends />
         </TabProvider>
       </HydrationBoundary>
     </main>

@@ -11,28 +11,19 @@ import {faker, fakerKO} from '@faker-js/faker';
 import ActionButtons from "@/app/(afterLogin)/_component/ActionButtons";
 import PostArticle from "@/app/(afterLogin)/_component/PostArticle";
 import PostImages from "@/app/(afterLogin)/_component/PostImages";
+import {IPost} from "@/model/Post";
 
 //* 플러그인 연결!
 dayjs.locale('ko');
 dayjs.extend(relativeTime);
 
 type TProps = {
-  // 이미지 상세보기 시 해당 게시글에 굳이 이미지를 보여줄 필요없으니까...
   noImage?: boolean;
+  post: IPost
 }
 
-export default function Post({ noImage }: TProps) {
-  const target = {
-    postId: 1,
-    User: {
-      id: 'elonmusk',
-      nickname: 'Elon Musk',
-      image: '/yRsRRjGO.jpg',
-    },
-    content: fakerKO.lorem.text(),
-    createdAt: new Date(),
-    Images: [] as any[],
-  }
+export default function Post({ noImage, post }: TProps) {
+  const target = post
   
   // 테스트하고자하는 이미지 갯수만큼 늘려서 사용
   if (Math.random() > 0.5 && !noImage) {
