@@ -4,7 +4,7 @@ import TabProvider from "@/app/(afterLogin)/home/_component/TabProvider";
 import PostForm from "@/app/(afterLogin)/home/_component/PostForm";
 import {dehydrate, HydrationBoundary, QueryClient} from "@tanstack/react-query";
 import {getPostRecommends} from "@/app/(afterLogin)/home/_lib/getPostRecommends";
-import PostRecommends from "@/app/(afterLogin)/home/_component/PostRecommends";
+import TabDecider from "@/app/(afterLogin)/home/_component/TabDecider";
 
 export default async function Home() {
   //* react-query는 서버컴포넌트에서도 어느정도 사용이 가능하다.
@@ -39,8 +39,6 @@ export default async function Home() {
    *  => setQueryData(['posts', 'recommends'], ...) 을 사용
    */
   
-  // queryClient.getQueryData(['posts', 'recommends'])
-  
   return (
     <main className={style.main}>
       {/* HydrationBoundary 를 통해 디하이드레이트된 데이터를 물려받아서 클라이언트 리액트 쿼리로 만든다. */}
@@ -49,8 +47,8 @@ export default async function Home() {
         <TabProvider>
           <Tab/>
           <PostForm />
-          {/* 클라이언트의 리액트쿼리가 받기위해서 컴포넌트 분리 */}
-          <PostRecommends />
+          {/* 탭에 따라 보여줄 데이터를 바꿔주기 위한 컴포넌트 */}
+          <TabDecider />
         </TabProvider>
       </HydrationBoundary>
     </main>
