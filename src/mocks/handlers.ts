@@ -21,12 +21,7 @@ const Post = [];
 
 export const handlers = [
   http.post('/api/login', () => {
-    return HttpResponse.json({
-      userId: 1,
-      nickname: '휴고',
-      id: 'hugoK@ng',
-      image: '/spiderman1.jpeg'
-    }, {
+    return HttpResponse.json(User[2], {
       headers: {
         'Set-Cookie': `connect.sid=msw-cookie;HttpOnly;path=/`
       }

@@ -1,7 +1,8 @@
 "use client";
 import style from "./comment-form.module.css";
 import {useRef, useState} from "react";
-import {useQueryClient} from "@tanstack/react-query";
+import {useQuery, useQueryClient} from "@tanstack/react-query";
+import {useSession} from "next-auth/react";
 
 type TProps = {
   id: string;
@@ -10,15 +11,11 @@ type TProps = {
 export default function CommentForm({ id }: TProps) {
   const [content, setContent] = useState("");
   const imageRef = useRef<HTMLInputElement>(null);
+  const {data: me} = useSession();
   
   const onChange = () => {};
   const onClickButton = () => {};
   const onSubmit = () => {};
-  
-  const me = {
-    id: 'hugoK1ng',
-    image: '/spiderman1.jpeg'
-  }
   
   const queryClient = useQueryClient();
   const post = queryClient.getQueryData(['posts', id]);
@@ -29,7 +26,7 @@ export default function CommentForm({ id }: TProps) {
     <form className={style.postForm} onSubmit={onSubmit}>
       <div className={style.postUserSection}>
         <div className={style.postUserImage}>
-          <img src={me.image} alt={me.id}/>
+          <img src={me?.user?.image as string} alt={me?.user?.email as string}/>
         </div>
       </div>
       <div className={style.postInputSection}>

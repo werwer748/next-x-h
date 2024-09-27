@@ -23,7 +23,7 @@ export default function Search({ searchParams }: TProps) {
           </div>
         </div>
         {/* 홈에서 사용하는 탭과는 다름 - 수행해야하는 기능이 다르다. */}
-        <Tab/>
+        <Tab searchParams={searchParams}/>
       </div>
       <div className={style.list}>
         <SearchResult searchParams={searchParams} />
