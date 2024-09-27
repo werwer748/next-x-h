@@ -3,7 +3,8 @@ import {InfiniteData, useInfiniteQuery} from "@tanstack/react-query";
 import {getPostRecommends} from "@/app/(afterLogin)/home/_lib/getPostRecommends";
 import Post from "@/app/(afterLogin)/_component/Post";
 import {IPost} from "@/model/Post";
-import {Fragment} from "react";
+import {Fragment, useEffect} from "react";
+import {useInView} from "react-intersection-observer";
 
 export default function PostRecommends() {
   //? 쿼리 키를 사용해 프로바이더에서 데이터를 제공 받는다.
@@ -18,8 +19,22 @@ export default function PostRecommends() {
    * <IPost[], Object, InfiniteData<IPost[]>, [_1: string, _2: string], number>
    * 키 타입 (_1: string...) 자리 뒤에 pageParam의 타입을 정의함
    * => postId의 타입을 명시
+   *
+   * fetchNextPage 호출
+   * => 다음 페이지 요청
+   *
+   * hasNextPage
+   * => 다음페이지 있을경우 true, 없으면 false
+   *
+   * isFetching
+   * => 리액트 쿼리가 데이터를 가져오는 바로 그 순간
    */
-  const { data } = useInfiniteQuery<IPost[], Object, InfiniteData<IPost[]>, [_1: string, _2: string], number>({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetching
+  } = useInfiniteQuery<IPost[], Object, InfiniteData<IPost[]>, [_1: string, _2: string], number>({
     queryKey: ['posts', 'recommends'],
     queryFn: getPostRecommends,
     //* 기본 페이지 넘버 필요
@@ -53,9 +68,27 @@ export default function PostRecommends() {
     gcTime: 300 * 1000
   });
   
-  return data?.pages.map((page, idx) => (
-    <Fragment key={idx}>
-      {page.map((post) => <Post key={post.postId} post={post}/>)}
-    </Fragment>
-  ))
+  const {ref, inView } = useInView({
+    threshold: 0, // 감지용 태그가 몇픽셀만큼 보이면 이벤트를 호출하는지
+    delay: 0, // 보이고 몇초 후 이벤트를 호출할 것인지
+  })
+  useEffect(() => {
+    // 화면에 이벤트용 태그가 보이면 inView가 true가 됨.
+    if (inView) {
+      //? 데이터를 불러오고있지 않고 다음 페이지가 있을 때 호출
+      !isFetching && hasNextPage && fetchNextPage();
+    }
+  }, [inView, isFetching, hasNextPage, fetchNextPage]);
+  
+  return (
+    <>
+      {data?.pages.map((page, idx) => (
+        <Fragment key={idx}>
+          {page.map((post) => <Post key={post.postId} post={post}/>)}
+        </Fragment>
+      ))}
+      {/* 스크롤 이벤트 감지용 */}
+      <div ref={ref} style={{ height: 50 }} />
+    </>
+  )
 }
