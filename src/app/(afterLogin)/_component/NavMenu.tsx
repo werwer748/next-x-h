@@ -9,7 +9,7 @@ export default function NavMenu() {
   const segment = useSelectedLayoutSegment();
   console.log("URL 경로확인::: ", segment);
   const me = {
-    id: 'hugoKang01'
+    id: 'hugoK1ng'
   }
   return (
     <>

@@ -12,15 +12,15 @@ export default function SinglePost() {
       </div>
       {/* 답글입력 ~ 답글목록*/}
       <div className={style.commentBox}>
-        <Post/>
+        {/*<Post/>*/}
         
         <CommentForm/>
-        <Post/>
-        <Post/>
-        <Post/>
-        <Post/>
-        <Post/>
-        <Post/>
+        {/*<Post/>*/}
+        {/*<Post/>*/}
+        {/*<Post/>*/}
+        {/*<Post/>*/}
+        {/*<Post/>*/}
+        {/*<Post/>*/}
       </div>
     </div>
   )

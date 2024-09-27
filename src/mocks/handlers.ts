@@ -13,7 +13,7 @@ function generateDate() {
 const User = [
   {id: 'elonmusk', nickname: 'Elon Musk', image: '/yRsRRjGO.jpg'},
   {id: 'zerohch0', nickname: '제로초', image: '/5Udwvqim.jpg'},
-  {id: 'hugoK@ng', nickname: '휴고캉', image: '/spiderman1.jpeg'},
+  {id: 'hugoK1ng', nickname: '휴고킹', image: '/spiderman1.jpeg'},
   {id: 'leoturtle', nickname: '레오', image: faker.image.avatar()},
 ];
 
@@ -215,19 +215,24 @@ export const handlers = [
   //* 유저의 게시글 가져오기
   http.get('/api/users/:userId/posts', ({ request, params }) => {
     const {userId}= params;
+    const findUser = User.find((v) => v.id === userId);
+    
+    if (!findUser) {
+      HttpResponse.json([])
+    }
     
     return HttpResponse.json(
       [
         {
           postId: 1,
-          User: User[2],
+          User: findUser,
           content: `${1} ${userId}의 게시`,
           Images: [{imageId: 1, link: faker.image.urlLoremFlickr()}],
           createdAt: generateDate(),
         },
         {
           postId: 2,
-          User: User[2],
+          User: findUser,
           content: `${2} ${userId}의 게시`,
           Images: [
             {imageId: 1, link: faker.image.urlLoremFlickr()},
@@ -237,14 +242,14 @@ export const handlers = [
         },
         {
           postId: 3,
-          User: User[2],
+          User: findUser,
           content: `${3} ${userId}의 게시`,
           Images: [],
           createdAt: generateDate(),
         },
         {
           postId: 4,
-          User: User[2],
+          User: findUser,
           content: `${4} ${userId}의 게시`,
           Images: [
             {imageId: 1, link: faker.image.urlLoremFlickr()},
@@ -256,7 +261,7 @@ export const handlers = [
         },
         {
           postId: 5,
-          User: User[2],
+          User: findUser,
           content: `${5} ${userId}의 게시글`,
           Images: [
             {imageId: 1, link: faker.image.urlLoremFlickr()},
@@ -270,9 +275,15 @@ export const handlers = [
   }),
   //* 유저 정보 가져오기
   http.get('/api/users/:userId', ({ request, params }) => {
-    const {userId, postId}= params;
+    const {userId}= params;
+    const findUser = User.find((v) => v.id === userId);
     
-    return HttpResponse.json(User[2]);
+    if (findUser) {
+      return HttpResponse.json(findUser);
+    }
+    return HttpResponse.json({ message: 'no_such_user'}, {
+      status: 404,
+    })
   }),
   //* 게시글 하나 가져오기
   http.get('/api/users/:userId/posts/:postId', ({ request, params }) => {
