@@ -11,9 +11,11 @@ export default async function Home() {
   const queryClient = new QueryClient();
   
   //* 서버에서 가져온 데이터를 클라이언트의 리액트쿼리가 넘겨받는다.(하이드레이트한다.)
-  await queryClient.prefetchQuery({
+  //* 인피니트 스크롤링을 위해 prefetchInfiniteQuery를 사용한다.
+  await queryClient.prefetchInfiniteQuery({
     queryKey: ['posts', 'recommends'],
-    queryFn: getPostRecommends
+    queryFn: getPostRecommends,
+    initialPageParam: 0, // 필수로 넣어야하는 속성 - 첫페이지는 0
   });
   
   //* 데이터를 불러온 후 dehydrate
