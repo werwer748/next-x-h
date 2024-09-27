@@ -1,8 +1,13 @@
 "use client";
 import style from "./comment-form.module.css";
 import {useRef, useState} from "react";
+import {useQueryClient} from "@tanstack/react-query";
 
-export default function CommentForm() {
+type TProps = {
+  id: string;
+}
+
+export default function CommentForm({ id }: TProps) {
   const [content, setContent] = useState("");
   const imageRef = useRef<HTMLInputElement>(null);
   
@@ -11,9 +16,14 @@ export default function CommentForm() {
   const onSubmit = () => {};
   
   const me = {
-    id: 'hugoKang01',
-    image: '/5Udwvqim.jpg'
+    id: 'hugoK1ng',
+    image: '/spiderman1.jpeg'
   }
+  
+  const queryClient = useQueryClient();
+  const post = queryClient.getQueryData(['posts', id]);
+  
+  if (!post) return null;
   
   return (
     <form className={style.postForm} onSubmit={onSubmit}>

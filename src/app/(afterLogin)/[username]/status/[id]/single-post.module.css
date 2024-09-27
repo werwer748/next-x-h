@@ -30,7 +30,12 @@
     margin-left: 30px;
 }
 
+.content {
+    width: inherit;
+    padding-top: 53px;
+
+}
+
 .commentBox {
     width: 100%;
-    padding-top: 53px;
 }

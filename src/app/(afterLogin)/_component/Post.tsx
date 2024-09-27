@@ -5,9 +5,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import 'dayjs/locale/ko';
 
-//? faker named import
-import {faker, fakerKO} from '@faker-js/faker';
-
 import ActionButtons from "@/app/(afterLogin)/_component/ActionButtons";
 import PostArticle from "@/app/(afterLogin)/_component/PostArticle";
 import PostImages from "@/app/(afterLogin)/_component/PostImages";
@@ -24,24 +21,6 @@ type TProps = {
 
 export default function Post({ noImage, post }: TProps) {
   const target = post
-  
-  // 테스트하고자하는 이미지 갯수만큼 늘려서 사용
-  if (Math.random() > 0.5 && !noImage) {
-    target.Images.push(
-      { imageId: 1,
-        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
-      },
-      { imageId: 2,
-        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
-      },
-      { imageId: 3,
-        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
-      },
-      { imageId: 4,
-        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
-      },
-    )
-  }
   
   return (
     /**
@@ -71,7 +50,8 @@ export default function Post({ noImage, post }: TProps) {
           </div>
           <div>{target.content}</div>
           <div>
-            <PostImages post={target}/>
+            {!noImage && <PostImages post={target}/>}
+            
           </div>
           <ActionButtons/>
         </div>
