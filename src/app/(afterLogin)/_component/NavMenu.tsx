@@ -3,14 +3,15 @@ import * as React from 'react';
 import {useSelectedLayoutSegment} from "next/navigation";
 import Link from 'next/link';
 import style from './nav-menu.module.css';
+import {useSession} from "next-auth/react";
 
 export default function NavMenu() {
   // 바로 아래 자식들의 이름만 확인
   const segment = useSelectedLayoutSegment();
   console.log("URL 경로확인::: ", segment);
-  const me = {
-    id: 'hugoKang01'
-  }
+  
+  const { data: me } = useSession();
+  
   return (
     <>
       <li>
@@ -95,10 +96,10 @@ export default function NavMenu() {
           </div>
         </Link>
       </li>
-      {me?.id && <li>
-          <Link href={`/${me?.id}`}>
+      {me?.user?.email && <li>
+          <Link href={`/${me?.user?.email}`}>
               <div className={style.navPill}>
-                {segment === me.id ? <>
+                {segment === me?.user?.email ? <>
                     <svg width={26} viewBox="0 0 24 24" aria-hidden="true"
                          className="r-18jsvk2 r-4qtqp9 r-yyyyoo r-lwhw9o r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-cnnz9e">
                       <g>

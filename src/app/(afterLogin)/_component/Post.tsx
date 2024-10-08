@@ -5,52 +5,22 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import 'dayjs/locale/ko';
 
-//? faker named import
-import {faker, fakerKO} from '@faker-js/faker';
-
 import ActionButtons from "@/app/(afterLogin)/_component/ActionButtons";
 import PostArticle from "@/app/(afterLogin)/_component/PostArticle";
 import PostImages from "@/app/(afterLogin)/_component/PostImages";
+import {IPost} from "@/model/Post";
 
 //* 플러그인 연결!
 dayjs.locale('ko');
 dayjs.extend(relativeTime);
 
 type TProps = {
-  // 이미지 상세보기 시 해당 게시글에 굳이 이미지를 보여줄 필요없으니까...
   noImage?: boolean;
+  post: IPost
 }
 
-export default function Post({ noImage }: TProps) {
-  const target = {
-    postId: 1,
-    User: {
-      id: 'elonmusk',
-      nickname: 'Elon Musk',
-      image: '/yRsRRjGO.jpg',
-    },
-    content: fakerKO.lorem.text(),
-    createdAt: new Date(),
-    Images: [] as any[],
-  }
-  
-  // 테스트하고자하는 이미지 갯수만큼 늘려서 사용
-  if (Math.random() > 0.5 && !noImage) {
-    target.Images.push(
-      { imageId: 1,
-        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
-      },
-      { imageId: 2,
-        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
-      },
-      { imageId: 3,
-        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
-      },
-      { imageId: 4,
-        link: faker.image.urlLoremFlickr() // 렌덤한 이미지!
-      },
-    )
-  }
+export default function Post({ noImage, post }: TProps) {
+  const target = post
   
   return (
     /**
@@ -80,7 +50,8 @@ export default function Post({ noImage }: TProps) {
           </div>
           <div>{target.content}</div>
           <div>
-            <PostImages post={target}/>
+            {!noImage && <PostImages post={target}/>}
+            
           </div>
           <ActionButtons/>
         </div>

@@ -3,6 +3,7 @@
 // import {redirect} from "next/navigation"; // next에서 제공하는 redirect - 서버
 import { useRouter } from "next/navigation";
 import HomeComponent from "@/app/(beforeLogin)/_component/HomeComponent";
+import {useSession} from "next-auth/react";
 
 export default function Login() {
   //* 페이지 접근시 해당 경로로 리다이렉트 시킨다.
@@ -11,6 +12,14 @@ export default function Login() {
 
   //* 클라이언트에서 링크를 통해서 이동할 수 있게 변경
   const router = useRouter();
+  //* 클라이언트 컴포넌트에서 로그인 여부 체크!
+  const { data: session } = useSession();
+  
+  if (session?.user) {
+    router.replace("/home");
+    return null;
+  }
+  
   router.replace('/i/flow/login')
   return <HomeComponent />;
 }
