@@ -2,57 +2,31 @@ import style from "./home.module.css";
 import Tab from "@/app/(afterLogin)/home/_component/Tab";
 import TabProvider from "@/app/(afterLogin)/home/_component/TabProvider";
 import PostForm from "@/app/(afterLogin)/home/_component/PostForm";
-import {dehydrate, HydrationBoundary, QueryClient} from "@tanstack/react-query";
-import {getPostRecommends} from "@/app/(afterLogin)/home/_lib/getPostRecommends";
-import TabDecider from "@/app/(afterLogin)/home/_component/TabDecider";
+import TabDeciderSuspense from "@/app/(afterLogin)/home/_component/TabDeciderSuspense";
+import {Suspense} from "react";
+import Loading from "@/app/(afterLogin)/home/loading";
 
+/**
+ * 서버사이드 렌더링이 적용되서
+ * 서버에서 보여줄 부분을 만들어서 내려주기 떄문에 로딩을 볼 수 없다.
+ * => Suspense를 직접 사용하고 하이드레이션 컴포넌트를 나눠서 해결
+ */
 export default async function Home() {
-  //* react-query는 서버컴포넌트에서도 어느정도 사용이 가능하다.
-  const queryClient = new QueryClient();
   
-  //* 서버에서 가져온 데이터를 클라이언트의 리액트쿼리가 넘겨받는다.(하이드레이트한다.)
-  //* 인피니트 스크롤링을 위해 prefetchInfiniteQuery를 사용한다.
-  await queryClient.prefetchInfiniteQuery({
-    queryKey: ['posts', 'recommends'],
-    queryFn: getPostRecommends,
-    initialPageParam: 0, // 필수로 넣어야하는 속성 - 첫페이지는 0
-  });
-  
-  //* 데이터를 불러온 후 dehydrate
-  const dehydratedState = dehydrate(queryClient);
-  
-  /**
-   *  dehydratedState를 리액트 쿼리가 하이드레이트 해야 함.
-   *
-   *  하이드레이트?
-   *  => 서버에서 온 데이터를 클라이언트에서 그대로 형식에 맞춰서 물려받는 것.
-   *
-   *  쿼리 클라이언트 작성시 무조건 객체형식으로 작성해야 한다.
-   *  {
-   *     queryKey: ['posts', 'recommends'],
-   *     queryFn: getPostRecommends
-   *  }
-   *  => ['posts', 'recommends'] 이런 키를 가지고 있을 떄는
-   *  항상 getPostRecommends를 실행해라
-   *
-   *  값을 꺼내올때 키를 통해 가져온다.
-   *  => queryClient.getQueryData(['posts', 'recommends'])
-   *  가져온 데이터를 수정시
-   *  => setQueryData(['posts', 'recommends'], ...) 을 사용
-   */
   
   return (
     <main className={style.main}>
-      {/* HydrationBoundary 를 통해 디하이드레이트된 데이터를 물려받아서 클라이언트 리액트 쿼리로 만든다. */}
-      <HydrationBoundary state={dehydratedState}>
         {/* Provider 태그 내부에서만 Context API를 쓸 수 있음*/}
         <TabProvider>
           <Tab/>
           <PostForm />
-          {/* 탭에 따라 보여줄 데이터를 바꿔주기 위한 컴포넌트 */}
-          <TabDecider />
+          {/* 스트리밍 방식으로 페이지 데이터를 받아올 때 로딩이 필요한 부분은 따로 서스팬스를 직접 걸어 사용하는 것도 좋은 방법이다.*/}
+          {/* 서스펜스가 위에 있어야 아래 로딩되고 있는 자식들을 감지할 수 있다. */}
+          {/* 로딩이 실제로 필요한 게시글 목록만 서스펜스 처리한것 */}
+          <Suspense fallback={<Loading />}>
+            <TabDeciderSuspense />
+          </Suspense>
         </TabProvider>
-      </HydrationBoundary>
     </main>
   )
 }

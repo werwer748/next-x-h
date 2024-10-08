@@ -19,6 +19,11 @@ const User = [
 
 const Post = [];
 
+//? 로딩확인을 위해 프로미스 셋타임아웃 만들어보기
+const delay = (ms: number) => new Promise((res, rej) => {
+  setTimeout(res, ms);
+});
+
 export const handlers = [
   http.post('/api/login', () => {
     return HttpResponse.json(User[2], {
@@ -46,7 +51,7 @@ export const handlers = [
     })
   }),
   //* 게시물 가져오기
-  http.get('/api/postRecommends', ({ request }) => {
+  http.get('/api/postRecommends', async ({ request }) => {
     // url에서 쿼리스트링 잘라오기
     const url = new URL(request.url);
     const cursor = parseInt(url.searchParams.get('cursor') as string) || 0;
@@ -103,7 +108,10 @@ export const handlers = [
       ]
     )
   }),
-  http.get('/api/followingPosts', ({ request }) => {
+  http.get('/api/followingPosts', async ({ request }) => {
+    //? 로딩확인을 위해 딜레이 사용
+    await delay(3000);
+    
     return HttpResponse.json(
       [
         {

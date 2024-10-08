@@ -1,10 +1,11 @@
 "use client";
-import {InfiniteData, useInfiniteQuery} from "@tanstack/react-query";
+import {InfiniteData, useInfiniteQuery, useSuspenseInfiniteQuery} from "@tanstack/react-query";
 import {getPostRecommends} from "@/app/(afterLogin)/home/_lib/getPostRecommends";
 import Post from "@/app/(afterLogin)/_component/Post";
 import {IPost} from "@/model/Post";
 import {Fragment, useEffect} from "react";
 import {useInView} from "react-intersection-observer";
+import styles from "@/app/(afterLogin)/home/home.module.css";
 
 export default function PostRecommends() {
   //? 쿼리 키를 사용해 프로바이더에서 데이터를 제공 받는다.
@@ -33,8 +34,12 @@ export default function PostRecommends() {
     data,
     fetchNextPage,
     hasNextPage,
-    isFetching
-  } = useInfiniteQuery<IPost[], Object, InfiniteData<IPost[]>, [_1: string, _2: string], number>({
+    isFetching, // 데이터를 가져오는 순간(queryFn 실행순간) true
+    isPending, // 아무동작도 하지 않았을 때 true
+    isLoading, // isPending && isFetching
+    isError // 클라이언트 컴포넌트의 경우 이걸 사용해 에러를 처리해야 함.
+    // 상위 서스펜스의 로딩을 가져다 쓰기위하 useInfiniteQuery => useSuspenseInfiniteQuery로 교체
+  } = useSuspenseInfiniteQuery<IPost[], Object, InfiniteData<IPost[]>, [_1: string, _2: string], number>({
     queryKey: ['posts', 'recommends'],
     queryFn: getPostRecommends,
     //* 기본 페이지 넘버 필요
@@ -71,7 +76,8 @@ export default function PostRecommends() {
   const {ref, inView } = useInView({
     threshold: 0, // 감지용 태그가 몇픽셀만큼 보이면 이벤트를 호출하는지
     delay: 0, // 보이고 몇초 후 이벤트를 호출할 것인지
-  })
+  });
+  
   useEffect(() => {
     // 화면에 이벤트용 태그가 보이면 inView가 true가 됨.
     if (inView) {
@@ -79,6 +85,24 @@ export default function PostRecommends() {
       !isFetching && hasNextPage && fetchNextPage();
     }
   }, [inView, isFetching, hasNextPage, fetchNextPage]);
+  
+  // if (isPending) { // useSuspenseInfiniteQuery 쓰니까 필요없을듯...?
+  //   //! 서버에서 이미 불러와서 하이드레이트하기 때문에 로딩이 안보임
+  //   return (
+  //     <div style={{display: 'flex', justifyContent: 'center'}}>
+  //       <svg className={styles.loader} height="100%" viewBox="0 0 32 32" width={40}>
+  //         <circle cx="16" cy="16" fill="none" r="14" strokeWidth="4"
+  //                 style={{stroke: 'rgb(29, 155, 240)', opacity: 0.2}}></circle>
+  //         <circle cx="16" cy="16" fill="none" r="14" strokeWidth="4"
+  //                 style={{stroke: 'rgb(29, 155, 240)', strokeDasharray: 80, strokeDashoffset: 60}}></circle>
+  //       </svg>
+  //     </div>
+  //   )
+  // }
+  
+  if (isError) {
+    return '에러났어열';
+  }
   
   return (
     <>
@@ -88,7 +112,7 @@ export default function PostRecommends() {
         </Fragment>
       ))}
       {/* 스크롤 이벤트 감지용 */}
-      <div ref={ref} style={{ height: 50 }} />
+      <div ref={ref} style={{height: 50}}/>
     </>
   )
 }
