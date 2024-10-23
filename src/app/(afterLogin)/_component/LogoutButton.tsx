@@ -1,22 +1,27 @@
 "use client"; //? 버튼 함수사용을 위해 클라이언트 컴포넌트화
 
 import style from "./logout-button.module.css";
-import {signOut, useSession} from "next-auth/react";
+import {signOut} from "next-auth/react";
 import {useRouter} from "next/navigation";
+import {Session} from "@auth/core/types";
 
-export default function LogoutButton() {
+type TProps = {
+  me: Session
+};
+
+export default function LogoutButton({ me }: TProps) {
   const router = useRouter();
   /**
    * 로그인한 본인 정보를 담고있는 훅
    * => 클라이언트 컴포넌트에서만 쓸 수 있다.
+   * 버튼에 최신 세션정보를 넘겨주기위해 프롭스로 전달받은 세션을 사용
    */
-  const {data: me} = useSession();
+  // const {data: me} = useSession();
 
   const onLogout = () => {
     // 클라이언트 컴포넌트기 때문에 next-auth에서 제공하는 기능을 사용
-    signOut({redirect: false}).then(() => {
-      router.replace("/");
-    });
+    //* 버전 변경으로 코드 사용방법이 바뀜
+    signOut({ redirectTo: '/'});
   };
   
   if (!me?.user) return null;

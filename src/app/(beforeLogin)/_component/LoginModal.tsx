@@ -23,12 +23,19 @@ export default function LoginModal() {
     setMessage('');
     
     try {
-      await signIn("credentials", { // 각종 로그인 provider를 제공해 줌
+      const response = await signIn("credentials", { // 각종 로그인 provider를 제공해 줌
         username: id, // next-auth에서 username, password 키값 고정
         password,
         redirect: false, // 클라이언트 라우트로 주소이동 예정이기 떄문에 서버 리다이렉트 off
-      })
-      router.replace("/home");
+      });
+      console.log('response', response);
+      //? 에러처리를 위해 추가
+      if (response?.error) {
+        setMessage('아이디와 비밀번호가 일치하지 않습니다.');
+      } else {
+        router.replace("/home");
+      }
+      
     } catch (e) {
       console.error(e);
       setMessage('아이디와 비밀번호가 일치하지 않습니다.');

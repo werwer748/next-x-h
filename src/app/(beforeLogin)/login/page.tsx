@@ -1,27 +1,37 @@
-"use client";
+// "use client"; => 서버컴포넌트로 변경
 
-// import {redirect} from "next/navigation"; // next에서 제공하는 redirect - 서버
-import { useRouter } from "next/navigation";
+import {redirect} from "next/navigation"; // next에서 제공하는 redirect - 서버
+// import { useRouter } from "next/navigation"; // 서버컴포넌트로 변경했기때문에 사용하지 못함
 import HomeComponent from "@/app/(beforeLogin)/_component/HomeComponent";
 import {useSession} from "next-auth/react";
+import {auth} from "@/auth";
+import RedirectToLogin from "@/app/(beforeLogin)/login/_component/RedirectToLogin";
 
-export default function Login() {
+export default async function Login() {
   //* 페이지 접근시 해당 경로로 리다이렉트 시킨다.
   // 서버쪽 리다이렉트라서 인터셉트가 작동하지 않는다.
   // redirect("/i/flow/login"); -> 클라이언트 컴포넌트에서는 동작하지 않는다.
 
   //* 클라이언트에서 링크를 통해서 이동할 수 있게 변경
-  const router = useRouter();
+  // const router = useRouter();
+  
   //* 클라이언트 컴포넌트에서 로그인 여부 체크!
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
+  
+  //* 서버컴포넌트에서 세션을 확인
+  const session = await auth();
   
   if (session?.user) {
-    router.replace("/home");
+    redirect('/home');
     return null;
   }
   
-  router.replace('/i/flow/login')
-  return <HomeComponent />;
+  return (
+    <>
+      <RedirectToLogin />
+      <HomeComponent />
+    </>
+  );
 }
 /*
 * push와 replace

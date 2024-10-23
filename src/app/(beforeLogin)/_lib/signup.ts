@@ -24,11 +24,15 @@ export default async (state: { message: string | null } | undefined, formData: F
   if (!formData.get('image')) {
     return {message: 'no_image'};
   }
+  
+  //* 백엔드에서 name이 아닌 nickname을 요구하고 있으므로 변경하여 전송
+  formData.set('nickname', formData.get('name') as string);
+  
   // next/navigation의 redirect는 try/catch에서 쓸 수 없기 때문에 이렇게 처리
-  let goRedirect = false;
+  let shouldRedirect = false;
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users`, {
-      method: "POST",
+      method: "post",
       body: formData,
       credentials: 'include' // 쿠키 전달을 위해 추가
     });
@@ -37,7 +41,7 @@ export default async (state: { message: string | null } | undefined, formData: F
       return {message: 'user_exists'}
     }
     console.log(await response.json());
-    goRedirect = true;
+    shouldRedirect = true;
     
     // 회원가입 성공 후 로그인
     await signIn("credentials", {
@@ -51,7 +55,7 @@ export default async (state: { message: string | null } | undefined, formData: F
     return { message: 'server_error' };
   }
   
-  if (goRedirect) {
+  if (shouldRedirect) {
     redirect('/home'); // try/catch문에서 절대로 사용해서는 안됨
   }
 }

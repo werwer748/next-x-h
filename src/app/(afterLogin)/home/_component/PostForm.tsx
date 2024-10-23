@@ -1,12 +1,17 @@
 "use client"; // form을 쓰기 떄문에
+
 import style from "./post-form.module.css";
 import {ChangeEventHandler, FormEventHandler, useRef, useState} from "react";
-import {useSession} from "next-auth/react";
+import {Session} from "@auth/core/types";
 
-export default function PostForm() {
+type TProps = {
+  me: Session | null
+}
+
+export default function PostForm({ me }: TProps) {
   const imageRef = useRef<HTMLInputElement>(null);
   const [content, setContent] = useState('');
-  const {data: me} = useSession();
+  // const {data: me} = useSession();
   
   // textarea 이벤트 타이핑
   const onChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
