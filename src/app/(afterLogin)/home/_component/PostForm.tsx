@@ -3,6 +3,7 @@
 import style from "./post-form.module.css";
 import {ChangeEventHandler, FormEventHandler, useRef, useState} from "react";
 import {Session} from "@auth/core/types";
+import TextareaAutosize from "react-textarea-autosize";
 
 type TProps = {
   me: Session | null
@@ -10,6 +11,7 @@ type TProps = {
 
 export default function PostForm({ me }: TProps) {
   const imageRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<Array<{ dataUrl: string, file: File }>>([]);
   const [content, setContent] = useState('');
   // const {data: me} = useSession();
   
@@ -19,12 +21,57 @@ export default function PostForm({ me }: TProps) {
   };
   
   // form 이벤트 타이핑
-  const onSubmit: FormEventHandler = (e) => {
+  const onSubmit: FormEventHandler = async (e) => {
     e.preventDefault();
+    const formData = new FormData();
+    formData.append('content', content);
+    
+    //* 이미지 파일 집어넣기
+    preview.forEach((p) => {
+      p && formData.append('images', p.file);
+    });
+    
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
   }
   const onClickButton = () => {
     // 옵셔널 체이닝을 통해서 간단하게 처리
     imageRef.current?.click();
+  };
+  
+  const onRemoveImage = (imgIdx: number) => () => {
+    setPreview((prevPreview) => {
+      return prevPreview.filter((v, idx) => idx !== imgIdx);
+    })
+  }
+  
+  const onUpload: ChangeEventHandler<HTMLInputElement> = (e) => {
+    e.preventDefault();
+    console.log("onUpload1");
+    if (e.target.files) {
+      console.log("onUpload2");
+      Array.from(e.target.files).forEach((file, idx) => {
+        const reader = new FileReader();
+        
+        //* 파일을 읽은후 실행됨
+        reader.onloadend = () => {
+          setPreview((prevPreview) => {
+            const prev = [...prevPreview];
+            prev[idx] = {
+              dataUrl: reader.result as string,
+              file
+            };
+            return prev;
+          });
+        };
+        
+        //* 파일마다 경로를 읽음
+        reader.readAsDataURL(file);
+      })
+    }
   };
   
   return (
@@ -35,11 +82,19 @@ export default function PostForm({ me }: TProps) {
         </div>
       </div>
       <div className={style.postInputSection}>
-        <textarea value={content} onChange={onChange} placeholder={"오늘은 무슨일이 있었나요?"}/>
+        <TextareaAutosize value={content} onChange={onChange} placeholder={"오늘은 무슨일이 있었나요?"} />
+        <div style={{ display: "flex" }}>
+          {preview.map((v, idx) => (
+            v &&
+            <div key={idx} onClick={onRemoveImage(idx)} style={{ flex: 1 }}>
+                <img src={v.dataUrl} alt={v.dataUrl} style={{ maxWidth: "100%" }} />
+            </div>
+          ))}
+        </div>
         <div className={style.postButtonSection}>
           <div className={style.footerButtons}>
             <div className={style.footerButtonLeft}>
-              <input type="file" name="imageFiles" multiple hidden ref={imageRef} />
+              <input type="file" name="imageFiles" multiple hidden ref={imageRef} onChange={onUpload}/>
               <button className={style.uploadButton} type="button" onClick={onClickButton}>
                 <svg width={24} viewBox="0 0 24 24" aria-hidden="true">
                   <g>
