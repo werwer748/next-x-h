@@ -1,10 +1,10 @@
 "use client"; // form을 쓰기 떄문에
 
 import style from "./post-form.module.css";
-import {ChangeEventHandler, FormEventHandler, useRef, useState} from "react";
+import {ChangeEventHandler, FormEvent, FormEventHandler, useRef, useState} from "react";
 import {Session} from "@auth/core/types";
 import TextareaAutosize from "react-textarea-autosize";
-import {useQueryClient} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {IPost} from "@/model/Post";
 import {useRouter} from "next/navigation";
 
@@ -18,63 +18,76 @@ export default function PostForm({ me }: TProps) {
   const [content, setContent] = useState('');
   const queryClient = useQueryClient();
   
+  //* 뮤테이션 사용하기
+  const mutation = useMutation({
+    //? FormEventHandler -> FormEvent
+    mutationFn: async (e: FormEvent) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('content', content);
+      //* 이미지 파일 집어넣기
+      preview.forEach((p) => {
+        p && formData.append('images', p.file);
+      });
+      //? 성공 실패 여부는 리액트 쿼리에 맡긴다.
+      return fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+    },
+    /**
+     * onMutate() {} :
+     * - 뮤테이션 함수 호출시 실행
+     *
+     * onSettled() {} :
+     * - 성공, 실패 상관없이 뮤테이션이 완전 종료되었을 때 실행
+     */
+    //? 요청 성공시
+    /**
+     * response: fetch 응답값
+     * variable: mutationFn에서 받은 인자
+     * context: onMutate에서 return 받은 값
+     */
+    async onSuccess(response, variable, context) {
+      const newPost = await response.json();
+      setContent('');
+      setPreview([]);
+      if (queryClient.getQueryData(['posts', 'recommends'])) {
+        queryClient.setQueryData(['posts', 'recommends'], (prevData: { pages: IPost[][] }) => {
+          const shallow = {
+            ...prevData,
+            pages: [...prevData.pages],
+          };
+          shallow.pages[0] = [...shallow.pages[0]];
+          shallow.pages[0].unshift(newPost);
+          return shallow;
+        });
+      }
+      if (queryClient.getQueryData(['posts', 'followings'])) {
+        queryClient.setQueryData(['posts', 'followings'], (prevData: { pages: IPost[][] }) => {
+          const shallow = {
+            ...prevData,
+            pages: [...prevData.pages],
+          };
+          shallow.pages[0] = [...shallow.pages[0]];
+          shallow.pages[0].unshift(newPost);
+          return shallow;
+        });
+      }
+    },
+    //? 요청 실패시
+    onError(err) {
+      console.error(err);
+      alert("Post Upload Error.");
+    },
+  });
+  
   // textarea 이벤트 타이핑
   const onChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
     setContent(e.target.value);
   };
   
-  // form 이벤트 타이핑
-  const onSubmit: FormEventHandler = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append('content', content);
-    
-    //* 이미지 파일 집어넣기
-    preview.forEach((p) => {
-      p && formData.append('images', p.file);
-    });
-    
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-      
-      //? 게시글 등록 성공
-      if (response.status === 201) {
-        const newPost = await response.json();
-        setContent('');
-        setPreview([]);
-        if (queryClient.getQueryData(['posts', 'recommends'])) {
-          queryClient.setQueryData(['posts', 'recommends'], (prevData: { pages: IPost[][] }) => {
-            const shallow = {
-              ...prevData,
-              pages: [...prevData.pages],
-            };
-            shallow.pages[0] = [...shallow.pages[0]];
-            shallow.pages[0].unshift(newPost);
-            return shallow;
-          });
-        }
-        if (queryClient.getQueryData(['posts', 'followings'])) {
-          queryClient.setQueryData(['posts', 'followings'], (prevData: { pages: IPost[][] }) => {
-            const shallow = {
-              ...prevData,
-              pages: [...prevData.pages],
-            };
-            shallow.pages[0] = [...shallow.pages[0]];
-            shallow.pages[0].unshift(newPost);
-            return shallow;
-          });
-        }
-      }
-      
-    } catch (err) {
-      console.error(err);
-      alert("Post Upload Error.");
-    }
-  }
   const onClickButton = () => {
     // 옵셔널 체이닝을 통해서 간단하게 처리
     imageRef.current?.click();
@@ -113,7 +126,8 @@ export default function PostForm({ me }: TProps) {
   };
   
   return (
-    <form className={style.postForm} onSubmit={onSubmit}>
+    //* onSubmit에 mutation 사용하기
+    <form className={style.postForm} onSubmit={mutation.mutate}>
       <div className={style.postUserSection}>
         <div className={style.postUserImage}>
           <img src={me?.user?.image as string} alt={me?.user?.email as string} />

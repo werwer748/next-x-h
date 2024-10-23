@@ -1,21 +1,35 @@
 "use client";
-import {useQuery, useSuspenseQuery} from "@tanstack/react-query";
+import {
+  InfiniteData,
+  useSuspenseInfiniteQuery,
+} from "@tanstack/react-query";
 import Post from "@/app/(afterLogin)/_component/Post";
 import {IPost} from "@/model/Post";
 import {getFollowingPosts} from "@/app/(afterLogin)/home/_lib/getFollowingPosts";
 import styles from "@/app/(afterLogin)/home/home.module.css";
+import {useInView} from "react-intersection-observer";
+import {Fragment, useEffect} from "react";
 
-//* 예제를 남겨두기 위해 해당 컴포넌트는 인피니트쿼리 적용하지 않음
 export default function FollowingPosts() {
-  /**
-   * 중복되는 로딩처리
-   * 상위 Suspense의 fallback을 인식해서 사용하게 된다.
-   */
-  const { data, isPending } = useSuspenseQuery<IPost[]>({
+
+  const {
+    data,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetching
+  } = useSuspenseInfiniteQuery<IPost[], Object, InfiniteData<IPost[]>, [_1: string, _2: string], number>({
     queryKey: ['posts', 'followings'],
     queryFn: getFollowingPosts,
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.at(-1)?.postId,
     staleTime: 60 * 1000,
     gcTime: 300 * 1000
+  });
+  
+  const {ref, inView } = useInView({
+    threshold: 0, // 감지용 태그가 몇픽셀만큼 보이면 이벤트를 호출하는지
+    delay: 0, // 보이고 몇초 후 이벤트를 호출할 것인지
   });
   
   //? 중복되는 로딩처리... 만들어둔 로딩 컴포넌트를 써도 되지만 더 좋은 처리방법이 있음 useSuspenseQuery!
@@ -32,5 +46,27 @@ export default function FollowingPosts() {
   //   )
   // }
   
-  return data?.map((post) => <Post key={post.postId} post={post} />)
+  useEffect(() => {
+    // 화면에 이벤트용 태그가 보이면 inView가 true가 됨.
+    if (inView) {
+      //? 데이터를 불러오고있지 않고 다음 페이지가 있을 때 호출
+      !isFetching && hasNextPage && fetchNextPage();
+    }
+  }, [inView, isFetching, hasNextPage, fetchNextPage]);
+  
+  if (isError) {
+    return '에러났어열';
+  }
+  
+  return (
+    <>
+      {data?.pages.map((page, idx) => (
+        <Fragment key={idx}>
+          {page.map((post) => <Post key={post.postId} post={post}/>)}
+        </Fragment>
+      ))}
+      {/* 스크롤 이벤트 감지용 */}
+      <div ref={ref} style={{height: 50}}/>
+    </>
+  )
 }
