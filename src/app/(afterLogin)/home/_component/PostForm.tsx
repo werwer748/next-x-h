@@ -4,6 +4,9 @@ import style from "./post-form.module.css";
 import {ChangeEventHandler, FormEventHandler, useRef, useState} from "react";
 import {Session} from "@auth/core/types";
 import TextareaAutosize from "react-textarea-autosize";
+import {useQueryClient} from "@tanstack/react-query";
+import {IPost} from "@/model/Post";
+import {useRouter} from "next/navigation";
 
 type TProps = {
   me: Session | null
@@ -13,7 +16,7 @@ export default function PostForm({ me }: TProps) {
   const imageRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<Array<{ dataUrl: string, file: File }>>([]);
   const [content, setContent] = useState('');
-  // const {data: me} = useSession();
+  const queryClient = useQueryClient();
   
   // textarea 이벤트 타이핑
   const onChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
@@ -31,11 +34,46 @@ export default function PostForm({ me }: TProps) {
       p && formData.append('images', p.file);
     });
     
-    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData,
-    });
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      
+      //? 게시글 등록 성공
+      if (response.status === 201) {
+        const newPost = await response.json();
+        setContent('');
+        setPreview([]);
+        if (queryClient.getQueryData(['posts', 'recommends'])) {
+          queryClient.setQueryData(['posts', 'recommends'], (prevData: { pages: IPost[][] }) => {
+            const shallow = {
+              ...prevData,
+              pages: [...prevData.pages],
+            };
+            shallow.pages[0] = [...shallow.pages[0]];
+            shallow.pages[0].unshift(newPost);
+            return shallow;
+          });
+        }
+        if (queryClient.getQueryData(['posts', 'followings'])) {
+          queryClient.setQueryData(['posts', 'followings'], (prevData: { pages: IPost[][] }) => {
+            const shallow = {
+              ...prevData,
+              pages: [...prevData.pages],
+            };
+            shallow.pages[0] = [...shallow.pages[0]];
+            shallow.pages[0].unshift(newPost);
+            return shallow;
+          });
+        }
+      }
+      
+    } catch (err) {
+      console.error(err);
+      alert("Post Upload Error.");
+    }
   }
   const onClickButton = () => {
     // 옵셔널 체이닝을 통해서 간단하게 처리
